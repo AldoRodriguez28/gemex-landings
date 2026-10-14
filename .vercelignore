@@ -1,0 +1,8 @@
+# Material interno de la propuesta (confidencial): no se publica en Vercel
+docs/
+dossier_gemexsi_studio29.html
+demo_landing_gemexsi.html
+
+# Sistema
+.DS_Store
+.git
