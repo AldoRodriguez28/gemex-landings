@@ -32,7 +32,11 @@
 
   /* ---------- Medición (GTM / dataLayer) ---------- */
   window.dataLayer = window.dataLayer || [];
-  const track = (event, params) => window.dataLayer.push(Object.assign({ event, landing }, params));
+  // GTM conserva el último valor de cada clave: se limpian los parámetros de otros eventos
+  // para que no se cuelen (p. ej. file_type de file_upload en generate_lead).
+  const track = (event, params) => window.dataLayer.push(Object.assign(
+    { event, landing, form_field: undefined, file_type: undefined, error_count: undefined, error_fields: undefined },
+    params));
 
   // Folio único por visita: identifica en WhatsApp las solicitudes que vienen de estas landings.
   // Sin 0/O ni 1/I/L para que el vendedor lo pueda dictar o copiar sin errores.
