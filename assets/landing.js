@@ -13,8 +13,8 @@
  */
 (function () {
   // Número que recibe las solicitudes (52 + 10 dígitos, sin espacios).
-  // Pruebas: 522291532115 · Producción GEMEX: 522294487372
-  const WA_NUMBER = '522291532115';
+  // Producción GEMEX: 522294487372 · Pruebas: 522291532115
+  const WA_NUMBER = '522294487372';
   // true = muestra el WhatsApp simulado (útil para proyectar sin celular);
   // false = abre WhatsApp real con la ficha técnica pre-cargada.
   const SIMULATE = false;
