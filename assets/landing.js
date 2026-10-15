@@ -8,6 +8,7 @@
  *         data-closing="..."        pregunta de cierre
  *         data-file-replaces="true" la foto/archivo sustituye a los campos obligatorios
  *         data-reply1="..." data-reply2="...">  respuestas simuladas del asesor
+ *         data-landing="motores"  identifica la landing en el folio y en la medición
  *   <select required data-label="Potencia" data-emoji="⚙️">
  *   <input type="file" data-label="Placa de datos">
  */
@@ -27,6 +28,31 @@
   const required = selects.filter(s => s.required);
   const alertBox = form.querySelector('.form-alert');
   const fileReplaces = cfg.fileReplaces === 'true';
+  const landing = cfg.landing || 'general';
+
+  /* ---------- Medición (GTM / dataLayer) ---------- */
+  window.dataLayer = window.dataLayer || [];
+  const track = (event, params) => window.dataLayer.push(Object.assign({ event, landing }, params));
+
+  // Folio único por visita: identifica en WhatsApp las solicitudes que vienen de estas landings.
+  // Sin 0/O ni 1/I/L para que el vendedor lo pueda dictar o copiar sin errores.
+  const FOLIO_PREFIX = { motores: 'MOT', variadores: 'VAR', montaje: 'MON' };
+  const FOLIO_CHARS = '23456789ABCDEFGHJKMNPQRSTUVWXYZ';
+  const folio = 'GMX-' + (FOLIO_PREFIX[landing] || 'GEN') + '-' +
+    Array.from(crypto.getRandomValues(new Uint8Array(5)), b => FOLIO_CHARS[b % FOLIO_CHARS.length]).join('');
+
+  // Parámetros de campaña que llegan en la URL (Google Ads, UTMs) para ligarlos al folio.
+  const params = new URLSearchParams(location.search);
+  const campaign = {};
+  ['gclid', 'gbraid', 'wbraid', 'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content']
+    .forEach(k => { if (params.get(k)) campaign[k] = params.get(k); });
+
+  let started = false;
+  function markStarted(field) {
+    if (started) return;
+    started = true;
+    track('form_start', { form_field: field });
+  }
 
   /* ---------- Barra de progreso: un segmento por campo obligatorio ---------- */
   const stepsBox = form.querySelector('.steps');
@@ -59,6 +85,7 @@
   }
 
   selects.forEach(s => s.addEventListener('change', () => {
+    markStarted(s.id);
     s.closest('.field').classList.remove('invalid');
     alertBox.classList.remove('show');
     refreshProgress();
@@ -83,6 +110,8 @@
       uploadTitle.textContent = fileInput.dataset.label + ' adjunto ✓';
       uploadSub.textContent = file.name;
       uploadBox.classList.add('has-file');
+      markStarted('archivo');
+      track('file_upload', { file_type: attachment.isImage ? 'imagen' : 'pdf' });
       if (fileReplaces) clearErrors();
       refreshProgress();
     }
@@ -110,6 +139,7 @@
     const missing = required.filter(s => !s.value);
     if (!missing.length) return true;
     missing.forEach(s => s.closest('.field').classList.add('invalid'));
+    track('form_error', { error_count: missing.length, error_fields: missing.map(s => s.id).join(',') });
     showAlert('Faltan ' + missing.length + ' dato(s) marcados en rojo' +
       (fileReplaces && fileInput ? ', o bien adjunta: ' + fileInput.dataset.label.toLowerCase() + '.' : '.'));
     missing[0].focus();
@@ -118,7 +148,7 @@
 
   function buildMessage() {
     const pending = fileReplaces && attachment ? 'Ver ' + fileInput.dataset.label.toLowerCase() : 'Por definir';
-    const lines = ['*' + cfg.title + '*', '', cfg.intro, ''];
+    const lines = ['*' + cfg.title + '*', '🔖 *Folio:* ' + folio, '', cfg.intro, ''];
     selects.forEach(s => lines.push(s.dataset.emoji + ' *' + s.dataset.label + ':* ' + (s.value || pending)));
     if (fileInput) lines.push('📎 *' + fileInput.dataset.label + ':* ' +
       (attachment ? (SIMULATE ? 'Adjunto' : 'La envío a continuación en este chat') : 'No adjunto'));
@@ -231,6 +261,9 @@
     e.preventDefault();
     alertBox.classList.remove('info');
     if (!validate()) return;
+    const fields = {};
+    selects.forEach(s => { if (s.value) fields['campo_' + s.id] = s.value; });
+    track('generate_lead', Object.assign({ lead_folio: folio, has_attachment: !!attachment }, fields, campaign));
     SIMULATE ? openWa() : openRealWa();
   });
   waSend.addEventListener('click', send);
