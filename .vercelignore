@@ -6,3 +6,9 @@ demo_landing_gemexsi.html
 # Sistema
 .DS_Store
 .git
+
+# Llaves locales y herramientas de desarrollo
+.env
+.env.*
+scripts/
+node_modules/

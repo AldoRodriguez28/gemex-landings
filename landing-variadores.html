@@ -89,7 +89,16 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <div class="err">Selecciona: potencia del motor</div>
         </div>
         <div class="field">
-          <label for="alimentacion">2 · Alimentación <b>*</b></label>
+          <label for="corriente">2 · Corriente del motor</label>
+          <div class="unit">
+            <input type="number" id="corriente" name="corriente" min="0" step="0.1" inputmode="decimal"
+                   placeholder="Opcional · ej. 28" aria-describedby="corriente-unit"
+                   data-label="Corriente del motor" data-unit="A" data-emoji="🔋">
+            <span id="corriente-unit" title="Amperes">A</span>
+          </div>
+        </div>
+        <div class="field">
+          <label for="alimentacion">3 · Alimentación <b>*</b></label>
           <select id="alimentacion" name="alimentacion" required data-label="Alimentación" data-emoji="⚡">
             <option value="">Selecciona voltaje</option>
             <option>127/220 V monofásica</option>
@@ -100,7 +109,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <div class="err">Selecciona: alimentación</div>
         </div>
         <div class="field">
-          <label for="carga">3 · Tipo de carga <b>*</b></label>
+          <label for="carga">4 · Tipo de carga <b>*</b></label>
           <select id="carga" name="carga" required data-label="Tipo de carga" data-emoji="🏭">
             <option value="">Selecciona aplicación</option>
             <option>Bomba centrífuga (par variable)</option>
@@ -114,7 +123,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <div class="err">Selecciona: tipo de carga</div>
         </div>
         <div class="field">
-          <label for="necesidad">4 · Necesidad <b>*</b></label>
+          <label for="necesidad">5 · Necesidad <b>*</b></label>
           <select id="necesidad" name="necesidad" required data-label="Necesidad" data-emoji="🎯">
             <option value="">Selecciona motivo</option>
             <option>Reemplazo urgente de variador dañado</option>

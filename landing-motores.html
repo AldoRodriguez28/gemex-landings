@@ -58,7 +58,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           data-reply1="Hola, gracias por escribir a *GEMEX Servicios Industriales*. Recibimos tu ficha técnica completa ✅&#10;&#10;Estoy validando la existencia física en nuestro almacén regional. En menos de 20 minutos te envío la *cotización formal en PDF membretado* con el tiempo de entrega."
           data-reply2="¿Me compartes por favor el nombre de tu empresa o planta y la ciudad de entrega? Así dejamos lista la cotización para tu área de compras.">
       <h2>Configura tu motor</h2>
-      <p class="hint">Completa los 4 datos técnicos o sube una foto de la placa. Así cotizamos al primer mensaje.</p>
+      <p class="hint">Completa los 6 datos técnicos o sube una foto de la placa. Así cotizamos al primer mensaje.</p>
       <div class="steps" aria-hidden="true"></div>
 
       <div class="fields">
@@ -110,7 +110,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </div>
         <div class="field">
           <label for="aplicacion">4 · Aplicación <b>*</b></label>
-          <select id="aplicacion" name="aplicacion" required data-label="Aplicación" data-emoji="🏭">
+          <select id="aplicacion" name="aplicacion" required data-label="Aplicación" data-not-on-file data-emoji="🏭">
             <option value="">Selecciona uso</option>
             <option>Bomba</option>
             <option>Ventilador / Extractor</option>
@@ -123,6 +123,30 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           </select>
           <div class="err">Selecciona: aplicación</div>
         </div>
+        <div class="field">
+          <label for="arranque">5 · Tipo de arranque <b>*</b></label>
+          <select id="arranque" name="arranque" required data-label="Tipo de arranque" data-not-on-file data-emoji="🔌">
+            <option value="">Selecciona arranque</option>
+            <option>Arranque directo</option>
+            <option>Estrella-delta</option>
+            <option>Arrancador suave</option>
+            <option>Variador</option>
+            <option>No lo sé</option>
+          </select>
+          <div class="err">Selecciona: tipo de arranque</div>
+        </div>
+        <div class="field">
+          <label for="necesidad">6 · Necesidad <b>*</b></label>
+          <select id="necesidad" name="necesidad" required data-label="Necesidad" data-not-on-file data-emoji="🎯">
+            <option value="">Selecciona motivo</option>
+            <option>Reemplazo urgente</option>
+            <option>Proyecto o ampliación</option>
+            <option>Respaldo para stock</option>
+            <option>Ahorro de energía</option>
+            <option>Solo presupuesto</option>
+          </select>
+          <div class="err">Selecciona: necesidad</div>
+        </div>
       </div>
 
       <div class="divider">o sube la placa del motor</div>
@@ -132,7 +156,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <div class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7FA9EE" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></div>
         <div>
           <strong>Fotografía de la placa de datos</strong>
-          <span>JPG o PNG del motor averiado. Debe ser legible.</span>
+          <span>JPG o PNG legible del motor actual.</span>
         </div>
         <button type="button" class="rm">Quitar</button>
       </label>

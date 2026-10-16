@@ -10,6 +10,7 @@
  *         data-reply1="..." data-reply2="...">  respuestas simuladas del asesor
  *         data-landing="motores"  identifica la landing en el folio y en la medición
  *   <select required data-label="Potencia" data-emoji="⚙️">
+ *   <input type="number" data-label="Corriente" data-unit="A" data-emoji="🔋">  campo libre (opcional si no lleva required)
  *   <input type="file" data-label="Placa de datos">
  */
 (function () {
@@ -24,8 +25,10 @@
   const form = document.querySelector('[data-quote-form]');
   if (!form) return;
   const cfg = form.dataset;
-  const selects = [...form.querySelectorAll('select')];
-  const required = selects.filter(s => s.required);
+  const controls = [...form.querySelectorAll('select, input[data-label]:not([type=file])')];
+  const required = controls.filter(s => s.required);
+  const value = s => s.value.trim();
+  const display = s => value(s) && s.dataset.unit ? value(s) + ' ' + s.dataset.unit : value(s);
   const alertBox = form.querySelector('.form-alert');
   const fileReplaces = cfg.fileReplaces === 'true';
   const landing = cfg.landing || 'general';
@@ -70,13 +73,37 @@
   const uploadTitle = uploadBox && uploadBox.querySelector('strong');
   const uploadSub = uploadBox && uploadBox.querySelector('span');
   const defaults = uploadBox && { ico: uploadIco.innerHTML, title: uploadTitle.textContent, sub: uploadSub.textContent };
-  let attachment = null; // { name, url, isImage }
+  let attachment = null; // { name, url, isImage, upload, link }
+
+  /* ---------- Subida del adjunto a R2: wa.me solo admite texto, así que se envía el enlace ---------- */
+  const MAX_SIDE = 1600;
+  async function shrink(file) {
+    if (!file.type.startsWith('image/')) return file;
+    try {
+      const img = await createImageBitmap(file);
+      const scale = Math.min(1, MAX_SIDE / Math.max(img.width, img.height));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(img.width * scale);
+      canvas.height = Math.round(img.height * scale);
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      return await new Promise(resolve => canvas.toBlob(b => resolve(b || file), 'image/jpeg', 0.82));
+    } catch {
+      return file; // formato que el navegador no decodifica: se intenta tal cual
+    }
+  }
+  async function uploadFile(file) {
+    const blob = await shrink(file);
+    const res = await fetch('/api/upload?landing=' + landing + '&folio=' + folio,
+      { method: 'POST', headers: { 'Content-Type': blob.type }, body: blob });
+    if (!res.ok) throw new Error('upload ' + res.status);
+    return (await res.json()).url;
+  }
 
   function refreshProgress() {
-    const filled = required.filter(s => s.value).length;
+    const filled = required.filter(value).length;
     const complete = fileReplaces && attachment;
     steps.forEach((s, i) => s.classList.toggle('on', complete || i < filled));
-    selects.forEach(s => s.classList.toggle('filled', !!s.value));
+    controls.forEach(s => s.classList.toggle('filled', !!value(s)));
   }
 
   function showAlert(msg) {
@@ -88,7 +115,7 @@
     alertBox.classList.remove('show');
   }
 
-  selects.forEach(s => s.addEventListener('change', () => {
+  controls.forEach(s => s.addEventListener(s.tagName === 'SELECT' ? 'change' : 'input', () => {
     markStarted(s.id);
     s.closest('.field').classList.remove('invalid');
     alertBox.classList.remove('show');
@@ -112,8 +139,12 @@
         ? '<img alt="" src="' + attachment.url + '">'
         : '<span class="doc">PDF</span>';
       uploadTitle.textContent = fileInput.dataset.label + ' adjunto ✓';
-      uploadSub.textContent = file.name;
+      uploadSub.textContent = file.name + ' · subiendo…';
       uploadBox.classList.add('has-file');
+      const current = attachment;
+      current.upload = uploadFile(file)
+        .then(link => { current.link = link; }, err => console.warn(err))
+        .finally(() => { if (attachment === current) uploadSub.textContent = file.name + (current.link ? ' · listo ✓' : ''); });
       markStarted('archivo');
       track('file_upload', { file_type: attachment.isImage ? 'imagen' : 'pdf' });
       if (fileReplaces) clearErrors();
@@ -140,7 +171,7 @@
   /* ---------- Validación ---------- */
   function validate() {
     if (fileReplaces && attachment) return true;
-    const missing = required.filter(s => !s.value);
+    const missing = required.filter(s => !value(s));
     if (!missing.length) return true;
     missing.forEach(s => s.closest('.field').classList.add('invalid'));
     track('form_error', { error_count: missing.length, error_fields: missing.map(s => s.id).join(',') });
@@ -153,9 +184,11 @@
   function buildMessage() {
     const pending = fileReplaces && attachment ? 'Ver ' + fileInput.dataset.label.toLowerCase() : 'Por definir';
     const lines = ['*' + cfg.title + '*', '🔖 *Folio:* ' + folio, '', cfg.intro, ''];
-    selects.forEach(s => lines.push(s.dataset.emoji + ' *' + s.dataset.label + ':* ' + (s.value || pending)));
+    // data-not-on-file: dato que la placa no trae (p. ej. aplicación); vacío queda "Por definir".
+    controls.forEach(s => lines.push(s.dataset.emoji + ' *' + s.dataset.label + ':* ' +
+      (display(s) || ('notOnFile' in s.dataset ? 'Por definir' : pending))));
     if (fileInput) lines.push('📎 *' + fileInput.dataset.label + ':* ' +
-      (attachment ? (SIMULATE ? 'Adjunto' : 'La envío a continuación en este chat') : 'No adjunto'));
+      (attachment ? attachment.link || (SIMULATE ? 'Adjunto' : 'La envío a continuación en este chat') : 'No adjunto'));
     lines.push('', cfg.closing, '_Enviado desde gemexsi.com.mx · ' + document.title.split('·').pop().trim() + '_');
     return lines.join('\n');
   }
@@ -168,7 +201,8 @@
   const waStatus = document.getElementById('waStatus');
   const waReal = document.getElementById('waReal');
   let timers = [];
-  const waUrl = text => 'https://wa.me/' + WA_NUMBER + '?text=' + encodeURIComponent(text);
+  // api.whatsapp.com en lugar de wa.me: la redirección de wa.me convierte algunos emojis en "�".
+  const waUrl = text => 'https://api.whatsapp.com/send?phone=' + WA_NUMBER + '&text=' + encodeURIComponent(text);
   waReal.textContent = 'Enviar al WhatsApp real (+' + WA_NUMBER.replace(/^52(\d{3})(\d{3})(\d{4})$/, '52 $1 $2 $3') + ') ↗';
 
   const now = () => new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
@@ -248,15 +282,25 @@
     }), 1300));
   }
 
-  function openRealWa() {
-    const url = waUrl(buildMessage());
-    // Pestaña nueva para no perder la landing; si el navegador la bloquea, navega directo.
-    const tab = window.open(url, '_blank');
+  async function openRealWa() {
+    // Si la subida no ha terminado, la pestaña se abre ya (dentro del clic, para que el navegador
+    // no la bloquee) y se dirige a WhatsApp cuando haya enlace o se agote la espera.
+    const pending = attachment && !attachment.link;
+    const tab = window.open(pending ? '' : waUrl(buildMessage()), '_blank');
     if (tab) tab.opener = null;
-    else window.location.href = url;
-    if (attachment) {
-      showAlert('WhatsApp no permite adjuntar archivos desde un enlace: envía la ' +
-        fileInput.dataset.label.toLowerCase() + ' en el chat que se acaba de abrir.');
+    if (pending) {
+      showAlert('Subiendo ' + fileInput.dataset.label.toLowerCase() + '…');
+      alertBox.classList.add('info');
+      await Promise.race([attachment.upload, new Promise(r => setTimeout(r, 15000))]);
+      alertBox.classList.remove('show');
+    }
+    // Pestaña nueva para no perder la landing; si el navegador la bloquea, navega directo.
+    const url = waUrl(buildMessage());
+    if (!tab) window.location.href = url;
+    else if (pending) tab.location.href = url;
+    if (attachment && !attachment.link) {
+      showAlert('No se pudo subir el archivo (' + fileInput.dataset.label.toLowerCase() +
+        '): adjúntalo en el chat de WhatsApp que se acaba de abrir.');
       alertBox.classList.add('info');
     }
   }
@@ -266,7 +310,7 @@
     alertBox.classList.remove('info');
     if (!validate()) return;
     const fields = {};
-    selects.forEach(s => { if (s.value) fields['campo_' + s.id] = s.value; });
+    controls.forEach(s => { if (value(s)) fields['campo_' + s.id] = display(s); });
     track('generate_lead', Object.assign({ lead_folio: folio, has_attachment: !!attachment }, fields, campaign));
     SIMULATE ? openWa() : openRealWa();
   });

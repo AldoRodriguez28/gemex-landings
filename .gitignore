@@ -6,3 +6,8 @@ demo_landing_gemexsi.html
 # Sistema
 .DS_Store
 .vercel
+
+# Llaves locales (R2): nunca se suben
+.env
+.env.*
+node_modules/

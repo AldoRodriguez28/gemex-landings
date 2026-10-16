@@ -95,16 +95,32 @@ nav .wrap { display: flex; align-items: center; justify-content: space-between; 
   text-transform: uppercase; color: var(--muted); margin-bottom: 6px;
 }
 .field label b { color: var(--accent); }
-select {
+/* Con un número impar de campos, el último ocupa la fila completa. */
+.fields .field:last-child:nth-child(odd) { grid-column: 1 / -1; }
+select, .field input {
   width: 100%; font: inherit; font-size: 15px; color: var(--navy);
   padding: 11px 36px 11px 12px; border: 1.5px solid var(--line); border-radius: 8px;
   background: var(--mist) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%230F172A' stroke-width='2' fill='none'/%3E%3C/svg%3E") no-repeat right 12px center;
   appearance: none; -webkit-appearance: none; cursor: pointer;
   transition: border-color .15s, background-color .15s;
 }
-select:focus { outline: none; border-color: var(--navy); background-color: var(--white); }
-select.filled { border-color: #94A3B8; background-color: var(--white); }
-.field.invalid select { border-color: var(--error); background-color: #FEF2F2; }
+.field input { padding-right: 12px; background-image: none; cursor: text; }
+.field input::placeholder { color: var(--muted); }
+.field input::-webkit-inner-spin-button, .field input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.field input[type=number] { -moz-appearance: textfield; appearance: textfield; }
+/* Unidad fija dentro del campo (p. ej. "A" de amperes): visible, no editable. */
+.unit { position: relative; }
+.unit input { padding-right: 44px; }
+.unit span {
+  position: absolute; top: 1.5px; right: 1.5px; bottom: 1.5px; width: 36px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 700; color: var(--navy);
+  border-left: 1.5px solid var(--line); border-radius: 0 6.5px 6.5px 0;
+  pointer-events: none;
+}
+select:focus, .field input:focus { outline: none; border-color: var(--navy); background-color: var(--white); }
+select.filled, .field input.filled { border-color: #94A3B8; background-color: var(--white); }
+.field.invalid select, .field.invalid input { border-color: var(--error); background-color: #FEF2F2; }
 .err { display: none; font-size: 12px; color: var(--error); margin-top: 4px; font-weight: 600; }
 .field.invalid .err { display: block; }
 
