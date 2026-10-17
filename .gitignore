@@ -4,6 +4,7 @@ dossier_gemexsi_studio29.html
 demo_landing_gemexsi.html
 
 # Sistema
+temp_auto_push.bat
 .DS_Store
 .vercel
 
@@ -11,3 +12,5 @@ demo_landing_gemexsi.html
 .env
 .env.*
 node_modules/
+.gitignore
+branch_structure.json
