@@ -49,10 +49,15 @@
     Array.from(crypto.getRandomValues(new Uint8Array(5)), b => FOLIO_CHARS[b % FOLIO_CHARS.length]).join('');
 
   // Parámetros de campaña que llegan en la URL (Google Ads, UTMs) para ligarlos al folio.
+  // Se guardan en la sesión para no perderlos si el visitante pasa a otra landing.
   const params = new URLSearchParams(location.search);
-  const campaign = {};
+  let campaign = {};
   ['gclid', 'gbraid', 'wbraid', 'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content']
     .forEach(k => { if (params.get(k)) campaign[k] = params.get(k); });
+  try {
+    if (Object.keys(campaign).length) sessionStorage.setItem('gmx_campaign', JSON.stringify(campaign));
+    else campaign = JSON.parse(sessionStorage.getItem('gmx_campaign')) || {};
+  } catch { /* almacenamiento bloqueado: se usa solo la URL */ }
 
   let started = false;
   function markStarted(field) {
@@ -97,6 +102,20 @@
       { method: 'POST', headers: { 'Content-Type': blob.type }, body: blob });
     if (!res.ok) throw new Error('upload ' + res.status);
     return (await res.json()).url;
+  }
+
+  // Registro folio + clic de Google Ads en R2, para subir después qué folios se vendieron.
+  // keepalive: la petición termina aunque el navegador salga de la página hacia WhatsApp.
+  let leadSaved = false;
+  function saveLead(fields) {
+    if (leadSaved) return;
+    leadSaved = true;
+    const campos = {};
+    Object.keys(fields).forEach(k => { campos[k.replace(/^campo_/, '')] = fields[k]; });
+    fetch('/api/lead', {
+      method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(Object.assign({ landing, folio, has_attachment: !!attachment, campos }, campaign)),
+    }).catch(err => console.warn(err));
   }
 
   function refreshProgress() {
@@ -312,6 +331,7 @@
     const fields = {};
     controls.forEach(s => { if (value(s)) fields['campo_' + s.id] = display(s); });
     track('generate_lead', Object.assign({ lead_folio: folio, has_attachment: !!attachment }, fields, campaign));
+    saveLead(fields);
     SIMULATE ? openWa() : openRealWa();
   });
   waSend.addEventListener('click', send);
