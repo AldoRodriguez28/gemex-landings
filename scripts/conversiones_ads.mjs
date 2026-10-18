@@ -2,21 +2,21 @@
  * Arma el archivo de conversiones sin conexión para Google Ads: cruza las ventas ganadas que reporta
  * GEMEX (por folio) con los registros que guarda /api/lead en R2 (folio + gclid).
  *
- *   node --env-file=.env scripts/conversiones_ads.mjs ventas.csv [salida.csv] [--accion "Venta cerrada"]
+ *   node --env-file=.env scripts/conversiones_ads.mjs ventas.csv [salida.csv] [--accion "Venta Cerrada"]
  *
  * ventas.csv (con encabezado): folio,fecha,monto
  *   GMX-MOT-7KQ2D,2026-11-12,48500
  *   GMX-VAR-H3ZPA,2026-11-14 16:30,12800
  *
  * La salida se sube en Google Ads → Objetivos → Conversiones → Cargas. La acción de conversión
- * (por defecto "Venta cerrada", tipo importación de clics) debe existir con ese nombre exacto.
+ * (por defecto "Venta Cerrada", tipo importación de clics) debe existir con ese nombre exacto, mayúsculas incluidas.
  */
 import { readFile, writeFile } from 'node:fs/promises';
 import { r2 } from '../api/_r2.mjs';
 
 const args = process.argv.slice(2);
 const flag = args.indexOf('--accion');
-const ACTION = flag >= 0 ? args.splice(flag, 2)[1] : 'Venta cerrada';
+const ACTION = flag >= 0 ? args.splice(flag, 2)[1] : 'Venta Cerrada';
 const [input, output = 'conversiones_google_ads.csv'] = args;
 if (!input) {
   console.error('Uso: node --env-file=.env scripts/conversiones_ads.mjs ventas.csv [salida.csv] [--accion "Nombre"]');
