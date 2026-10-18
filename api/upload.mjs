@@ -7,16 +7,13 @@
  *   Cuerpo: el archivo tal cual (la landing reduce las fotos antes de enviarlas).
  *
  * Ruta en el bucket: landing-<landing>/<folio>/<aleatorio>.<ext>
- * Variables: R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET, R2_PUBLIC_URL.
- * Sin dependencias: la firma SigV4 de S3 se hace con node:crypto.
+ * Variables y firma de R2: ver _r2.mjs.
  */
-import { createHash, createHmac, randomBytes } from 'node:crypto';
+import { randomBytes } from 'node:crypto';
+import { FOLIO, LANDINGS, ORIGIN, env, json, putObject } from './_r2.mjs';
 
-const LANDINGS = { motores: 'MOT', variadores: 'VAR', montaje: 'MON' };
-const FOLIO = /^GMX-(MOT|VAR|MON)-[2-9A-HJKMNP-Z]{5}$/;
 const TYPES = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'application/pdf': 'pdf' };
 const MAX_BYTES = 4 * 1024 * 1024; // Vercel limita el cuerpo a 4.5 MB
-const ORIGIN = /^(https:\/\/(cotiza\.gemexsi\.com\.mx|gemex-landings(-[a-z0-9-]+)?\.vercel\.app)|http:\/\/localhost(:\d+)?)$/;
 
 // Firma real del archivo: evita que se suba cualquier cosa con un Content-Type falso.
 function matchesType(bytes, type) {
@@ -26,40 +23,6 @@ function matchesType(bytes, type) {
   if (type === 'image/webp') return hex.startsWith('52494646') && hex.slice(16, 24) === '57454250';
   if (type === 'application/pdf') return hex.startsWith('255044462d');
   return false;
-}
-
-const json = (status, body) => Response.json(body, { status });
-const env = name => (process.env[name] || '').trim();
-const sha256 = data => createHash('sha256').update(data).digest('hex');
-const hmac = (key, data) => createHmac('sha256', key).update(data).digest();
-
-async function putObject(key, body, type) {
-  const host = env('R2_ACCOUNT_ID') + '.r2.cloudflarestorage.com';
-  const path = '/' + env('R2_BUCKET') + '/' + key;
-  const amzDate = new Date().toISOString().replace(/[-:]|\.\d{3}/g, '');
-  const day = amzDate.slice(0, 8);
-  const hash = sha256(body);
-  const signed = 'host;x-amz-content-sha256;x-amz-date';
-  const request = ['PUT', path, '', 'host:' + host, 'x-amz-content-sha256:' + hash,
-    'x-amz-date:' + amzDate, '', signed, hash].join('\n');
-  const scope = day + '/auto/s3/aws4_request';
-  const toSign = ['AWS4-HMAC-SHA256', amzDate, scope, sha256(request)].join('\n');
-  let k = hmac('AWS4' + env('R2_SECRET_ACCESS_KEY'), day);
-  for (const part of ['auto', 's3', 'aws4_request']) k = hmac(k, part);
-  const signature = createHmac('sha256', k).update(toSign).digest('hex');
-
-  const res = await fetch('https://' + host + path, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': type,
-      'x-amz-content-sha256': hash,
-      'x-amz-date': amzDate,
-      Authorization: 'AWS4-HMAC-SHA256 Credential=' + env('R2_ACCESS_KEY_ID') + '/' + scope +
-        ', SignedHeaders=' + signed + ', Signature=' + signature,
-    },
-    body,
-  });
-  if (!res.ok) throw new Error('R2 ' + res.status + ' ' + (await res.text()).slice(0, 200));
 }
 
 export async function POST(request) {
