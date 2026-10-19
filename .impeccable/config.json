@@ -1,0 +1,23 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "overused-font",
+        "value": "inter",
+        "createdAt": "2026-10-19T23:12:22.525Z",
+        "reason": "Claude: Inter es la fuente ya establecida en las 3 landings publicadas de GEMEX (assets/fonts/inter-latin-wght.woff2); el aviso solo la hereda de landing.css"
+      },
+      {
+        "rule": "pulsing-dot",
+        "value": "*",
+        "files": [
+          "aviso-privacidad.html"
+        ],
+        "createdAt": "2026-10-19T23:12:33.553Z",
+        "reason": "Claude: los puntos animados son el indicador de 'escribiendo...' de la simulación de WhatsApp en landing.css (.typing); movimiento literal, no decorativo, y el aviso no lo usa"
+      }
+    ]
+  }
+}
