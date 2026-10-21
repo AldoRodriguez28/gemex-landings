@@ -1,7 +1,8 @@
 /*
  * Guarda en Cloudflare R2 el registro de cada solicitud enviada desde las landings: folio, identificador
  * del clic de Google Ads (gclid / gbraid / wbraid), UTMs y datos técnicos. Con él se sube después a
- * Google Ads qué folios terminaron en venta (scripts/conversiones_ads.mjs).
+ * Google Ads qué folios terminaron en venta (scripts/conversiones_ads.mjs). También escribe la fila
+ * del folio en la hoja del CRM (api/_sheet.mjs), donde el equipo de GEMEX le da seguimiento.
  *
  *   POST /api/lead   Content-Type: application/json
  *   { landing, folio, has_attachment, gclid?, gbraid?, wbraid?, utm_*?, campos? }
@@ -12,6 +13,7 @@
  */
 import { randomBytes } from 'node:crypto';
 import { FOLIO, LANDINGS, ORIGIN, json, putObject } from './_r2.mjs';
+import { sendToSheet } from './_sheet.mjs';
 
 const MAX_BYTES = 8 * 1024;
 const CLICK_ID = /^[\w-]{1,200}$/;
@@ -47,12 +49,17 @@ export async function POST(request) {
     record.campos = campos;
   }
 
+  // La hoja del CRM es complementaria: si falla, el registro en R2 sigue siendo la fuente para Google Ads.
+  const sheet = sendToSheet(record).catch(err => console.error(err));
+
   const key = 'leads/' + record.fecha.slice(0, 10) + '/' + folio + '-' + randomBytes(6).toString('base64url') + '.json';
   try {
     await putObject(key, JSON.stringify(record), 'application/json');
   } catch (err) {
     console.error(err);
+    await sheet;
     return json(502, { error: 'no se pudo guardar el registro' });
   }
+  await sheet; // Vercel congela la función al responder: hay que esperar el envío
   return json(200, { ok: true });
 }
