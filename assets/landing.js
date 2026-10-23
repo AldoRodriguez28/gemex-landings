@@ -11,6 +11,7 @@
  *         data-landing="motores"  identifica la landing en el folio y en la medición
  *   <select required data-label="Potencia" data-emoji="⚙️">
  *   <input type="number" data-label="Corriente" data-unit="A" data-emoji="🔋">  campo libre (opcional si no lleva required)
+ *   <input required data-always ...>  obligatorio aunque se adjunte la foto (p. ej. cantidad: la placa no la trae)
  *   <input type="file" data-label="Placa de datos">
  */
 (function () {
@@ -27,6 +28,7 @@
   const cfg = form.dataset;
   const controls = [...form.querySelectorAll('select, input[data-label]:not([type=file])')];
   const required = controls.filter(s => s.required);
+  const always = s => 'always' in s.dataset;
   const value = s => s.value.trim();
   const display = s => value(s) && s.dataset.unit ? value(s) + ' ' + s.dataset.unit : value(s);
   const alertBox = form.querySelector('.form-alert');
@@ -119,9 +121,9 @@
   }
 
   function refreshProgress() {
-    const filled = required.filter(value).length;
-    const complete = fileReplaces && attachment;
-    steps.forEach((s, i) => s.classList.toggle('on', complete || i < filled));
+    const done = s => (value(s) && s.checkValidity()) || (fileReplaces && attachment && !always(s));
+    const filled = required.filter(done).length;
+    steps.forEach((s, i) => s.classList.toggle('on', i < filled));
     controls.forEach(s => s.classList.toggle('filled', !!value(s)));
   }
 
@@ -189,13 +191,13 @@
 
   /* ---------- Validación ---------- */
   function validate() {
-    if (fileReplaces && attachment) return true;
-    const missing = required.filter(s => !value(s));
+    // checkValidity también rechaza números fuera de rango (p. ej. cantidad 0 o con decimales).
+    const missing = required.filter(s => (!(fileReplaces && attachment) || always(s)) && !s.checkValidity());
     if (!missing.length) return true;
     missing.forEach(s => s.closest('.field').classList.add('invalid'));
     track('form_error', { error_count: missing.length, error_fields: missing.map(s => s.id).join(',') });
     showAlert('Faltan ' + missing.length + ' dato(s) marcados en rojo' +
-      (fileReplaces && fileInput ? ', o bien adjunta: ' + fileInput.dataset.label.toLowerCase() + '.' : '.'));
+      (fileReplaces && fileInput && !attachment && !missing.every(always) ? ', o bien adjunta: ' + fileInput.dataset.label.toLowerCase() + '.' : '.'));
     missing[0].focus();
     return false;
   }
