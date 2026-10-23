@@ -70,8 +70,8 @@
           data-reply1="Hola, gracias por escribir a *GEMEX Servicios Industriales*. Recibimos tu ficha técnica ✅&#10;&#10;Con estos datos dimensiono el variador para tu tipo de carga y valido existencia en almacén. En menos de 20 minutos te envío la *cotización formal en PDF* con el modelo recomendado."
           data-reply2="¿El variador irá en un tablero existente o necesitas también gabinete y puesta en marcha en sitio?">
           <h2>Configura tu variador</h2>
-          <p class="hint">Completa los 4 datos o sube una foto de la placa. Así seleccionamos el variador al primer
-            mensaje.</p>
+          <p class="hint">Completa los 5 datos o sube una foto de la placa e indica la cantidad. Así seleccionamos el
+            variador al primer mensaje.</p>
           <div class="steps" aria-hidden="true"></div>
 
           <div class="fields">
@@ -146,6 +146,15 @@
                 <option>Arrancador suave</option>
               </select>
               <div class="err">Selecciona: necesidad</div>
+            </div>
+            <div class="field">
+              <label for="cantidad">6 · Cantidad <b>*</b></label>
+              <div class="unit wide">
+                <input type="number" id="cantidad" name="cantidad" required data-always min="1" step="1" inputmode="numeric"
+                  placeholder="ej. 2" aria-describedby="cantidad-unit" data-label="Cantidad" data-unit="pzas" data-emoji="🔢">
+                <span id="cantidad-unit" title="Piezas">pzas</span>
+              </div>
+              <div class="err">Indica la cantidad (mínimo 1 pieza)</div>
             </div>
           </div>
 
@@ -243,6 +252,7 @@
         <div class="footer-contact">
           <span>(+52) 229 448 7372</span>
           <span>ventas@gemexsi.com</span>
+          <span>Visita nuestro sitio web: <a href="https://gemexsi.com.mx/" target="_blank" rel="noopener">gemexsi.com.mx</a></span>
         </div>
       </div>
       <div class="footer-legal">

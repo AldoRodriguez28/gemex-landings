@@ -58,7 +58,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           data-reply1="Hola, gracias por escribir a *GEMEX Servicios Industriales*. Recibimos tu ficha técnica completa ✅&#10;&#10;Estoy validando la existencia física en nuestro almacén regional. En menos de 20 minutos te envío la *cotización formal en PDF membretado* con el tiempo de entrega."
           data-reply2="¿Me compartes por favor el nombre de tu empresa o planta y la ciudad de entrega? Así dejamos lista la cotización para tu área de compras.">
       <h2>Configura tu motor</h2>
-      <p class="hint">Completa los 6 datos técnicos o sube una foto de la placa. Así cotizamos al primer mensaje.</p>
+      <p class="hint">Completa los 7 datos técnicos o sube una foto de la placa e indica la cantidad. Así cotizamos al primer mensaje.</p>
       <div class="steps" aria-hidden="true"></div>
 
       <div class="fields">
@@ -92,9 +92,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <label for="voltaje">2 · Voltaje <b>*</b></label>
           <select id="voltaje" name="voltaje" required data-label="Voltaje" data-emoji="⚡">
             <option value="">Selecciona voltaje</option>
-            <option>220 V</option>
-            <option>440 V</option>
-            <option>Media Tensión</option>
+            <option>110/220 V monofásico</option>
+            <option>220/440 V trifásico</option>
+            <option>Media tensión</option>
           </select>
           <div class="err">Selecciona: voltaje</div>
         </div>
@@ -109,7 +109,16 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <div class="err">Selecciona: velocidad</div>
         </div>
         <div class="field">
-          <label for="aplicacion">4 · Aplicación <b>*</b></label>
+          <label for="brida">4 · Brida</label>
+          <select id="brida" name="brida" data-label="Brida" data-emoji="🔩">
+            <option value="">Selecciona brida (opcional)</option>
+            <option>Sin brida</option>
+            <option>Brida C</option>
+            <option>Brida D</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="aplicacion">5 · Aplicación <b>*</b></label>
           <select id="aplicacion" name="aplicacion" required data-label="Aplicación" data-not-on-file data-emoji="🏭">
             <option value="">Selecciona uso</option>
             <option>Bomba</option>
@@ -124,7 +133,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <div class="err">Selecciona: aplicación</div>
         </div>
         <div class="field">
-          <label for="arranque">5 · Tipo de arranque <b>*</b></label>
+          <label for="arranque">6 · Tipo de arranque <b>*</b></label>
           <select id="arranque" name="arranque" required data-label="Tipo de arranque" data-not-on-file data-emoji="🔌">
             <option value="">Selecciona arranque</option>
             <option>Arranque directo</option>
@@ -136,7 +145,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <div class="err">Selecciona: tipo de arranque</div>
         </div>
         <div class="field">
-          <label for="necesidad">6 · Necesidad <b>*</b></label>
+          <label for="necesidad">7 · Necesidad <b>*</b></label>
           <select id="necesidad" name="necesidad" required data-label="Necesidad" data-not-on-file data-emoji="🎯">
             <option value="">Selecciona motivo</option>
             <option>Reemplazo urgente</option>
@@ -146,6 +155,15 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <option>Solo presupuesto</option>
           </select>
           <div class="err">Selecciona: necesidad</div>
+        </div>
+        <div class="field">
+          <label for="cantidad">8 · Cantidad <b>*</b></label>
+          <div class="unit wide">
+            <input type="number" id="cantidad" name="cantidad" required data-always min="1" step="1" inputmode="numeric"
+              placeholder="ej. 2" aria-describedby="cantidad-unit" data-label="Cantidad" data-unit="pzas" data-emoji="🔢">
+            <span id="cantidad-unit" title="Piezas">pzas</span>
+          </div>
+          <div class="err">Indica la cantidad (mínimo 1 pieza)</div>
         </div>
       </div>
 
@@ -236,6 +254,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <div class="footer-contact">
         <span>(+52) 229 448 7372</span>
         <span>ventas@gemexsi.com</span>
+        <span>Visita nuestro sitio web: <a href="https://gemexsi.com.mx/" target="_blank" rel="noopener">gemexsi.com.mx</a></span>
       </div>
     </div>
     <div class="footer-legal">

@@ -118,6 +118,9 @@ select, .field input {
   border-left: 1.5px solid var(--line); border-radius: 0 6.5px 6.5px 0;
   pointer-events: none;
 }
+/* Unidad de varias letras (p. ej. "pzas"). */
+.unit.wide input { padding-right: 64px; }
+.unit.wide span { width: 54px; }
 select:focus, .field input:focus { outline: none; border-color: var(--navy); background-color: var(--white); }
 select.filled, .field input.filled { border-color: #94A3B8; background-color: var(--white); }
 .field.invalid select, .field.invalid input { border-color: var(--error); background-color: #FEF2F2; }
@@ -196,6 +199,9 @@ footer.site strong { color: var(--white); }
 .footer-main { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px 48px; flex-wrap: wrap; padding-bottom: 28px; }
 .footer-brand strong { display: block; font-size: 16px; font-weight: 800; margin-bottom: 4px; }
 .footer-contact { display: flex; flex-direction: column; gap: 4px; text-align: right; color: #CBD5E1; }
+.footer-contact a { color: var(--white); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: rgba(255,255,255,.35); transition: text-decoration-color .15s; }
+.footer-contact a:hover { text-decoration-color: currentColor; }
+.footer-contact a:focus-visible { outline: 2px solid var(--accent-light); outline-offset: 2px; border-radius: 2px; }
 .footer-legal {
   display: flex; justify-content: space-between; align-items: center; gap: 8px 24px; flex-wrap: wrap;
   border-top: 1px solid rgba(255,255,255,.12); padding-top: 20px; font-size: 12px;
